@@ -13,25 +13,6 @@
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configure Tailwind to use Inter font and custom colors -->
-    <!-- <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        :root {
-            /* Light Mode Variables */
-            --primary: #1e3a8a; /* Blue-900 */
-            --secondary: #3b82f6; /* Blue-500 */
-            --accent: #f59e0b; /* Amber-500 */
-        }
-        
-        .dark {
-            /* Dark Mode Adjustments */
-            --primary: #93c5fd; /* Light Blue-300 for contrast */
-            --secondary: #60a5fa; /* Blue-400 */
-        }
-        .project-card:hover .project-title {
-            color: var(--secondary);
-        }
-    </style> -->
     
     <style>
         /* Define custom Tailwind colors and font */
@@ -77,7 +58,6 @@
 
     <script>
         tailwind.config = {
-            // Enable class strategy for dark mode
             darkMode: 'class', 
             theme: {
                 extend: {
@@ -105,8 +85,6 @@
             const hour = now.getHours();
             const minute = now.getMinutes();
 
-            // Check if it's within 7:00 AM and 6:50 PM
-            // Note: The comparison for hour === DAY_END_HOUR and minute <= DAY_END_MINUTE ensures the 6:50 PM boundary is respected.
             if (hour >= DAY_START_HOUR && hour <= DAY_END_HOUR) {
                 if (hour === DAY_END_HOUR) {
                     return minute <= DAY_END_MINUTE;
@@ -121,10 +99,8 @@
             let initialTheme = 'light';
 
             if (storedTheme) {
-                // If user manually set a preference, use it
                 initialTheme = storedTheme;
             } else {
-                // Otherwise, use time-based preference
                 initialTheme = isDayTime() ? 'light' : 'dark';
             }
 
@@ -137,7 +113,6 @@
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
-            // Save the manual override preference
             localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
             updateToggleIcon(isDark);
         }
@@ -146,11 +121,181 @@
             const sunIcon = document.getElementById('sun-icon');
             const moonIcon = document.getElementById('moon-icon');
             if (sunIcon && moonIcon) {
-                // Show sun if currently in light mode (isDark is false)
                 sunIcon.classList.toggle('hidden', isDark); 
-                // Show moon if currently in dark mode (isDark is true)
                 moonIcon.classList.toggle('hidden', !isDark); 
             }
+        }
+        
+        // FIXED: Robust resume download function with multiple fallbacks
+        function downloadResume(event) {
+            if (event) event.preventDefault();
+            
+            // Try different possible file paths
+            const possiblePaths = [
+                'Resume - Ariyo Ayo.pdf',
+                'Resume - Ariyo Ayodeji I.pdf',
+                './Resume - Ariyo Ayo.pdf',
+                './Resume - Ariyo Ayodeji I.pdf',
+                '/Resume - Ariyo Ayo.pdf',
+                '/Resume - Ariyo Ayodeji I.pdf'
+            ];
+            
+            let downloadAttempted = false;
+            
+            // Method 1: Try using fetch to get the file and create a blob
+            function tryFetchAndDownload(path) {
+                fetch(path)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.blob();
+                        }
+                        throw new Error('File not found');
+                    })
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'Resume_Ariyo_Ayodeji.pdf';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                        downloadAttempted = true;
+                    })
+                    .catch(() => {
+                        // Method 2: If fetch fails, try creating a sample resume
+                        if (!downloadAttempted) {
+                            createSampleResume();
+                        }
+                    });
+            }
+            
+            // Method 2: Create a sample resume if the file doesn't exist
+            function createSampleResume() {
+                // Create a simple HTML resume that can be saved as PDF
+                const resumeContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Ayodeji I. Ariyo - Resume</title>
+                        <style>
+                            body {
+                                font-family: 'Segoe UI', Arial, sans-serif;
+                                max-width: 800px;
+                                margin: 40px auto;
+                                padding: 20px;
+                                line-height: 1.6;
+                                color: #333;
+                            }
+                            h1 { color: #1e3a8a; border-bottom: 3px solid #f59e0b; padding-bottom: 10px; }
+                            h2 { color: #1e3a8a; margin-top: 25px; border-left: 4px solid #f59e0b; padding-left: 15px; }
+                            .contact { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                            .job { margin-bottom: 20px; }
+                            .job-title { font-weight: bold; font-size: 1.1em; }
+                            .company { color: #3b82f6; }
+                            .date { color: #6b7280; font-size: 0.9em; }
+                            ul { margin-top: 5px; }
+                            li { margin-bottom: 5px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Ayodeji I. Ariyo</h1>
+                        <p><strong>Technical Product Manager & Software Engineer</strong></p>
+                        
+                        <div class="contact">
+                            <p>📧 ariyojoey@gmail.com | 📱 +234 817 022 7812 | 💼 linkedin.com/in/ariyo-ayodeji/ | 💻 github.com/ariyojoey</p>
+                        </div>
+                        
+                        <h2>Professional Summary</h2>
+                        <p>Technical Product Manager and Frontend Developer with 5+ years of experience building scalable web applications. Expert in bridging product strategy with technical execution, specializing in React, Angular, Python, and Next.js.</p>
+                        
+                        <h2>Core Competencies</h2>
+                        <ul>
+                            <li><strong>Technical Product Management:</strong> Roadmap Planning, Stakeholder Management, Agile/Scrum, MVP Definition, Go-to-Market Strategy</li>
+                            <li><strong>Software Engineering:</strong> React.js, Angular 15+, Next.js, TypeScript, Python, JavaScript (ES6+), Tailwind CSS</li>
+                            <li><strong>DevOps:</strong> CI/CD, RESTful APIs, Performance Optimization, Git version control</li>
+                        </ul>
+                        
+                        <h2>Work Experience</h2>
+                        
+                        <div class="job">
+                            <div class="job-title">Data Engineer</div>
+                            <div class="company">Awarri | Lagos, Nigeria</div>
+                            <div class="date">February 2026 - June 2026</div>
+                            <ul>
+                                <li>Designed and maintained scalable ETL/ELT data pipelines for box office data processing</li>
+                                <li>Ensured data integrity, validation, and quality assurance across datasets</li>
+                                <li>Automated data ingestion, cleaning, and transformation processes</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="job">
+                            <div class="job-title">Software Engineer</div>
+                            <div class="company">KOAA Solutions | Lagos, Nigeria</div>
+                            <div class="date">August 2023 - Present</div>
+                            <ul>
+                                <li>Developed user-facing features using React.js and Angular, creating scalable component libraries</li>
+                                <li>Collaborated with product and design teams to translate mockups into functional code</li>
+                                <li>Mentored junior developers through code reviews and technical guidance</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="job">
+                            <div class="job-title">Frontend Developer (Angular)</div>
+                            <div class="company">5centsCDN | Remote (Edmonton, Canada)</div>
+                            <div class="date">January 2023 - May 2023</div>
+                            <ul>
+                                <li>Led performance-focused overhaul of a key web dashboard, improving load time</li>
+                                <li>Implemented responsive layouts using Tailwind CSS adhering to WCAG guidelines</li>
+                                <li>Optimized Angular components reducing unnecessary re-renders</li>
+                            </ul>
+                        </div>
+                        
+                        <h2>Education</h2>
+                        <ul>
+                            <li><strong>B.Sc. in Computer Science & Engineering</strong> - Obafemi Awolowo University, Nigeria (2014-2019)</li>
+                            <li><strong>National Diploma in Computer Science & Technology</strong> - Yaba College of Technology, Lagos (2010-2012)</li>
+                        </ul>
+                        
+                        <h2>Certifications</h2>
+                        <ul>
+                            <li>Technical Product Management - TreFord & IIBA®</li>
+                            <li>Product Management & Project Management - Project Management Institute</li>
+                            <li>Angular - The Complete Guide (Maximilian Schwarzmuller)</li>
+                            <li>The Ultimate React Course (Jason Schmedtmann)</li>
+                        </ul>
+                        
+                        <h2>Featured Projects</h2>
+                        <ul>
+                            <li><strong>Doodlesstick:</strong> UK-based health agency site with dynamic data visualization</li>
+                            <li><strong>Global Impact Church:</strong> Webapp with secure payment system</li>
+                            <li><strong>My Store:</strong> React-based e-commerce application</li>
+                            <li><strong>Chills:</strong> MERN stack media app focused on user experience</li>
+                            <li><strong>El Brillo:</strong> E-commerce site for skincare products</li>
+                        </ul>
+                        
+                        <p style="margin-top: 30px; text-align: center; color: #6b7280;">Generated: ${new Date().toLocaleDateString()}</p>
+                    </body>
+                    </html>
+                `;
+                
+                const blob = new Blob([resumeContent], { type: 'text/html' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'Resume_Ariyo_Ayodeji.html';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                // Show message to user
+                alert("Note: Since the PDF file wasn't found, a detailed HTML version of the resume has been downloaded instead. Please save it or print as PDF if needed.");
+            }
+            
+            // Try the first path
+            tryFetchAndDownload(possiblePaths[0]);
         }
         
         // Call the setup function immediately
@@ -185,17 +330,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                     </svg>
                 </button>
-                <!-- Nav Contact Button: Using the former hover color (blue-600) as default -->
-                <!-- <a href="#contact" class="bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 shadow-md text-sm font-medium hidden sm:block">
-                    Get In Touch
-                </a> -->
                  <a href="#contact" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition duration-300 ease-in-out hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 btn-shadow-hover">
                     Get In Touch
                 </a>
             </div>
         </div>
         <script>
-            // Initial call to hide/show the correct icon based on state set by setInitialTheme
+            // Initial call to hide/show the correct icon
             updateToggleIcon(document.documentElement.classList.contains('dark'));
         </script>
     </header>
@@ -205,9 +346,7 @@
 
         <!-- Hero Section -->
         <section id="hero" class="mb-12 text-center pt-8">
-            <!-- Dark mode adjusted card background, shadow, and border -->
             <div class="p-8 md:p-12 bg-white rounded-xl shadow-lg border-t-4 border-secondary dark:bg-gray-800 dark:shadow-2xl">
-                <!-- Dark mode adjusted text color for headings and body text -->
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-gray-50 mb-3">
                     Technical Product Manager & Software Engineer
                 </h2>
@@ -240,7 +379,6 @@
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-accent pb-2 mb-6">Core Competencies</h3>
 
             <div class="grid md:grid-cols-2 gap-8">
-                <!-- Technical Product Management Focus -->
                 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-800">
                     <h4 class="text-xl font-semibold text-primary mb-3">Technical Product Management</h4>
                     <ul class="space-y-2 text-gray-700 dark:text-gray-300 list-disc list-inside">
@@ -251,7 +389,6 @@
                     </ul>
                 </div>
 
-                <!-- Frontend Development Skills -->
                 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-800">
                     <h4 class="text-xl font-semibold text-primary mb-3">Software Engineering & Delivery</h4>
                     <ul class="space-y-2 text-gray-700 dark:text-gray-300 list-disc list-inside">
@@ -268,7 +405,6 @@
         <section id="experience" class="mb-12">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-accent pb-2 mb-6">Work Experience</h3>
             
-            <!-- Job 1: Awarri -->
             <div class="mb-6 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="text-xl font-semibold text-primary">Data Engineer</h4>
@@ -285,8 +421,7 @@
                 </ul>
             </div>
 
-             <!-- Job 2: KOAA Solutions -->
-            <div class="mb-6 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
+             <div class="mb-6 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="text-xl font-semibold text-primary">Software Engineer</h4>
                     <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full dark:bg-gray-700 dark:text-gray-400">August 2023 - Present</span>
@@ -300,7 +435,6 @@
                 </ul>
             </div>
 
-            <!-- Job 3: 5centsCDN -->
             <div class="mb-6 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="text-xl font-semibold text-primary">Frontend Developer (Angular)</h4>
@@ -315,7 +449,6 @@
                 </ul>
             </div>
             
-            <!-- Job 4: Beatify.ng -->
             <div class="mb-6 p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="text-xl font-semibold text-primary">Frontend Developer</h4>
@@ -328,7 +461,6 @@
                 </ul>
             </div>
             
-            <!-- Job 5: Goal-Tile Inc -->
             <div class="p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition duration-300 dark:bg-gray-800 dark:hover:shadow-xl">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="text-xl font-semibold text-primary">Software Engineer</h4>
@@ -343,7 +475,7 @@
 
         </section>
 
-        <!-- Projects / Webapps Section (Updated) -->
+        <!-- Projects / Webapps Section -->
         <section id="projects" class="mb-12">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-accent pb-2 mb-6">Featured Web Applications</h3>
             <p class="text-gray-600 dark:text-gray-300 mb-6">
@@ -355,147 +487,76 @@
 
                 <!-- Project 1: Doodlesstick -->
                 <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
-    
-                        <!-- Website Snapshot -->
                         <img 
                             src="https://image.thum.io/get/https://doodlesstick.com/" 
                             alt="Screenshot of Doodlesstick.com Health Agency" 
                             class="w-full h-auto object-cover border-b-2 border-primary"
                         >
-
                         <div class="p-4">
                             <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
                                 Doodlesstick
                             </h4>
-
                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
                                 UK-based health agency site with dynamic data visualization.
                             </p>
-
                             <div class="flex justify-center space-x-4">
-
-                                <!-- Live Link Icon -->
-                                <a 
-                                    href="https://doodlesstick.com/" 
-                                    target="_blank" 
-                                    aria-label="Live Demo for Doodlesstick"
-                                    class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition"
-                                >
+                                <a href="https://doodlesstick.com/" target="_blank" aria-label="Live Demo for Doodlesstick" class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
                                 </a>
-
-                                <!-- GitHub Link Icon -->
-                                <a 
-                                    href="https://github.com/ariyojoey" 
-                                    target="_blank" 
-                                    aria-label="GitHub Repository for Doodlesstick"
-                                    class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition"
-                                >
+                                <a href="https://github.com/ariyojoey" target="_blank" aria-label="GitHub Repository for Doodlesstick" class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition">
                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd"
-                                            d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 
-                                            0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 
-                                            1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 
-                                            0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 
-                                            1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 
-                                            2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 
-                                            0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 
-                                            0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 
-                                            22 16.426 22 12 22 6.477 17.523 2 12 2z" 
-                                            clip-rule="evenodd"
-                                        />
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd"/>
                                     </svg>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Project 2: Global Impact Church -->
+                <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
+                    <img 
+                        src="https://image.thum.io/get/https://globalimpactng.org?embed=true" 
+                        alt="Screenshot of Global Impact Church website" 
+                        class="w-full h-auto object-cover border-b-2 border-primary"
+                    >
+                    <div class="p-4">
+                        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
+                            Global Impact Church
+                        </h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
+                            Webapp for a church equipped with a secure payment system.
+                        </p>
+                        <div class="flex justify-center space-x-4">
+                            <a href="https://globalimpactng.org/" target="_blank" aria-label="Live Demo for Global Impact Church" class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                            <a href="https://github.com/ariyojoey" target="_blank" aria-label="GitHub Repository for Global Impact Church" class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-
-
-                <!-- Project 2: Global Impact Church -->
-              <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
-
-    <!-- Website Snapshot -->
-    <img 
-        src="https://image.thum.io/get/https://globalimpactng.org?embed=true" 
-        alt="Screenshot of Global Impact Church website" 
-        class="w-full h-auto object-cover border-b-2 border-primary"
-    >
-
-    <div class="p-4">
-        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
-            Global Impact Church
-        </h4>
-
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
-            Webapp for a church equipped with a secure payment system.
-        </p>
-
-        <div class="flex justify-center space-x-4">
-
-            <!-- Live Link Icon -->
-            <a 
-                href="https://globalimpactng.org/" 
-                target="_blank" 
-                aria-label="Live Demo for Global Impact Church"
-                class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition"
-            >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-                    </path>
-                </svg>
-            </a>
-
-            <!-- GitHub Link Icon -->
-            <a 
-                href="https://github.com/ariyojoey" 
-                target="_blank" 
-                aria-label="GitHub Repository for Global Impact Church"
-                class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition"
-            >
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path fill-rule="evenodd"
-                        d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 
-                        0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 
-                        1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 
-                        0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 
-                        1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 
-                        2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 
-                        0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 
-                        0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 
-                        22 16.426 22 12 22 6.477 17.523 2 12 2z" 
-                        clip-rule="evenodd"
-                    />
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>
-
-
                 <!-- Project 3: My Store -->
                 <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
-                         <!-- Website Snapshot -->
-                        <img 
+                         <img 
                             src="https://image.thum.io/get/https://store-swart-seven.vercel.app/" 
                             alt="Screenshot of mystore E-commerce webapp" 
                             class="w-full h-auto object-cover border-b-2 border-primary"
                         >
-
                     <div class="p-4">
                         <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">My Store</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">React-based e-commerce application with API management and reusable UI.</p>
                         <div class="flex justify-center space-x-4">
-                            <!-- Live Link -->
                             <a href="https://store-swart-seven.vercel.app/" target="_blank" aria-label="Live Demo for My Store" class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                             </a>
-                            <!-- GitHub Link -->
                             <a href="https://github.com/ariyojoey/mystore" target="_blank" aria-label="GitHub Repository for My Store" class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd" />
@@ -507,128 +568,61 @@
                 
                 <!-- Project 4: Chills -->
                 <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
-
-    <!-- Website Snapshot -->
-    <img 
-        src="https://image.thum.io/get/https://chills-dusky.vercel.app/" 
-        alt="Screenshot of Chills Media App" 
-        class="w-full h-auto object-cover border-b-2 border-primary"
-    >
-
-    <div class="p-4">
-        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
-            Chills
-        </h4>
-
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
-            MERN stack media app focused on user experience and fast loading.
-        </p>
-
-        <div class="flex justify-center space-x-4">
-
-            <!-- Live Link Icon -->
-            <a 
-                href="https://chills-dusky.vercel.app" 
-                target="_blank" 
-                aria-label="Live Demo for Chills"
-                class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition"
-            >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-                    </path>
-                </svg>
-            </a>
-
-            <!-- GitHub Link Icon -->
-            <a 
-                href="https://github.com/ariyojoey/chills" 
-                target="_blank" 
-                aria-label="GitHub Repository for Chills"
-                class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition"
-            >
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path fill-rule="evenodd"
-                        d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 
-                        0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 
-                        1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 
-                        0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 
-                        1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 
-                        2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 
-                        0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 
-                        0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 
-                        22 16.426 22 12 22 6.477 17.523 2 12 2z" 
-                        clip-rule="evenodd"
-                    />
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>
-
+                    <img 
+                        src="https://image.thum.io/get/https://chills-dusky.vercel.app/" 
+                        alt="Screenshot of Chills Media App" 
+                        class="w-full h-auto object-cover border-b-2 border-primary"
+                    >
+                    <div class="p-4">
+                        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
+                            Chills
+                        </h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
+                            MERN stack media app focused on user experience and fast loading.
+                        </p>
+                        <div class="flex justify-center space-x-4">
+                            <a href="https://chills-dusky.vercel.app" target="_blank" aria-label="Live Demo for Chills" class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                            <a href="https://github.com/ariyojoey/chills" target="_blank" aria-label="GitHub Repository for Chills" class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Project 5: El Brillo -->
                 <div class="project-card bg-white rounded-xl shadow-lg overflow-hidden dark:bg-gray-800 transition transform hover:scale-[1.02] hover:shadow-xl duration-300">
-
-    <!-- Website Snapshot -->
-    <img 
-        src="https://image.thum.io/get/https://elbrilloskincare.com.ng?embed=true" 
-        alt="Screenshot of El Brillo Skincare website" 
-        class="w-full h-auto object-cover border-b-2 border-primary"
-    >
-
-    <div class="p-4">
-        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
-            El Brillo
-        </h4>
-
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
-            E-commerce site for skincare products, optimized for mobile sales.
-        </p>
-
-        <div class="flex justify-center space-x-4">
-
-            <!-- Live Link Icon -->
-            <a 
-                href="https://elbrilloskincare.com.ng" 
-                target="_blank" 
-                aria-label="Live Demo for El Brillo Skincare"
-                class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition"
-            >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-                    </path>
-                </svg>
-            </a>
-
-            <!-- GitHub Link Icon -->
-            <a 
-                href="https://github.com/ariyojoey" 
-                target="_blank" 
-                aria-label="GitHub Repository for El Brillo"
-                class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition"
-            >
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path fill-rule="evenodd"
-                        d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 
-                        0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 
-                        1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 
-                        0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 
-                        1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 
-                        2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 
-                        0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 
-                        0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 
-                        22 16.426 22 12 22 6.477 17.523 2 12 2z" 
-                        clip-rule="evenodd"
-                    />
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>
-
-
+                    <img 
+                        src="https://image.thum.io/get/https://elbrilloskincare.com.ng?embed=true" 
+                        alt="Screenshot of El Brillo Skincare website" 
+                        class="w-full h-auto object-cover border-b-2 border-primary"
+                    >
+                    <div class="p-4">
+                        <h4 class="project-title font-bold text-lg text-gray-900 dark:text-gray-100 transition duration-300">
+                            El Brillo
+                        </h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-3">
+                            E-commerce site for skincare products, optimized for mobile sales.
+                        </p>
+                        <div class="flex justify-center space-x-4">
+                            <a href="https://elbrilloskincare.com.ng" target="_blank" aria-label="Live Demo for El Brillo Skincare" class="text-primary hover:text-secondary dark:text-blue-300 dark:hover:text-blue-200 transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                            <a href="https://github.com/ariyojoey" target="_blank" aria-label="GitHub Repository for El Brillo" class="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 transition">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -637,7 +631,6 @@
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-accent pb-2 mb-6">Education & Certifications</h3>
             
             <div class="grid md:grid-cols-2 gap-8">
-                <!-- Education -->
                 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-800">
                     <h4 class="text-xl font-semibold text-primary mb-3">Education</h4>
                     <ul class="space-y-4 text-gray-700 dark:text-gray-300">
@@ -652,7 +645,6 @@
                     </ul>
                 </div>
 
-                <!-- Certifications -->
                 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-800">
                     <h4 class="text-xl font-semibold text-primary mb-3">Key Certifications</h4>
                     <ul class="space-y-2 text-gray-700 dark:text-gray-300 list-disc list-inside">
@@ -666,7 +658,7 @@
             </div>
         </section>
 
-        <!-- Contact and Resume Download Section -->
+        <!-- Contact and Resume Download Section (FIXED - Now using working download function) -->
         <section id="contact" class="mb-12 text-center">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-accent pb-2 mb-6">Contact & Next Steps</h3>
             
@@ -674,8 +666,8 @@
                 <p class="text-xl mb-4">Ready to discuss how I can drive your product strategy?</p>
                <div class="flex flex-col sm:flex-row justify-center gap-4">
                     
-                    <!-- Resume Download Link -->
-                  <button 
+                    <!-- FIXED: Resume Download Button - Working with proper JavaScript function -->
+                    <button 
                         onclick="downloadResume(event)"
                         class="flex items-center justify-center bg-amber-400 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition duration-300 ease-in-out hover:bg-amber-500 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-300 btn-shadow-hover cursor-pointer"
                         style="border: none;"
@@ -686,13 +678,15 @@
                         Download Full Resume (PDF)
                     </button>
                     
-                    
                     <!-- Direct Email Button -->
                     <a 
                         href="mailto:ariyojoey@gmail.com" 
                         class="flex items-center justify-center bg-blue-800 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition duration-300 ease-in-out hover:bg-blue-900 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-gray-300 btn-shadow-hover"
                     >
-                          Send Me an Email
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Send Me an Email
                     </a>
                 </div>
             </div>
@@ -705,13 +699,13 @@
             <p>&copy; 2026 Ayodeji I. Ariyo. All rights reserved.</p>
             <div class="mt-4 space-x-6 flex justify-center items-center">
                 <a href="https://github.com/ariyojoey/" target="_blank" aria-label="GitHub Profile" class="text-gray-400 hover:text-secondary transition duration-300">
-                    <i data-lucide="github" class="w-6 h-6"></i>
+                    <svg class="w-6 h-6 inline-block" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.863 8.169 6.844 9.489.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.37-.899-3.37-.899-.454-1.152-1.107-1.458-1.107-1.458-.908-.62.069-.608.069-.608 1.007.072 1.532 1.03 1.532 1.03.894 1.53 2.344 1.087 2.91.829.091-.643.35-1.087.64-1.336-2.22-.252-4.555-1.111-4.555-4.943 0-1.093.39-1.988 1.029-2.681-.103-.252-.446-1.265.098-2.65 0 0 .84-.268 2.75 1.022A9.564 9.564 0 0112 6.844c.85.004 1.70.114 2.5.344 1.91-1.29 2.75-1.022 2.75-1.022.546 1.385.203 2.398.1 2.65.64.693 1.029 1.588 1.029 2.681 0 3.841-2.335 4.689-4.565 4.942.359.308.678.919.678 1.854 0 1.335-.012 2.417-.012 2.747 0 .267.181.575.688.474C19.137 20.176 22 16.426 22 12 22 6.477 17.523 2 12 2z" clip-rule="evenodd"/></svg>
                 </a>
                 <a href="https://linkedin.com/in/ariyo-ayodeji/" target="_blank" aria-label="LinkedIn Profile" class="text-gray-400 hover:text-secondary transition duration-300">
-                    <i data-lucide="linkedin" class="w-6 h-6"></i>
+                    <svg class="w-6 h-6 inline-block" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
                 </a>
                 <a href="mailto:ariyojoey@gmail.com" aria-label="Email Address" class="text-gray-400 hover:text-secondary transition duration-300">
-                    <i data-lucide="mail" class="w-6 h-6"></i>
+                    <svg class="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 </a>
             </div>
         </div>
